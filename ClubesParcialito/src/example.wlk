@@ -5,47 +5,7 @@ class Club{
 	var socios = #{}
 	var gastosMensuales = 0
 	
-	method transferencia(unSocio,unEquipo){
-		if (not unSocio.esDestacado(self)){
-			self.transferir(unSocio,unEquipo)
-			self.darBaja(unSocio)
-		}
-		
-	}
-	
-	method darBaja(unSocio){
-		self.actividadesDeSocio(unSocio).foreach({actividad => actividad.quitarParticipante(unSocio)})
-		socios.remove(unSocio)
-	}
-	
-	method transferir(unSocio,unEquipo){
-		unEquipo.agregarParticipante(unSocio)
-	}
-	
-	method esPrestigioso() = self.tieneActConEstrellas() or self.tieneEquipoExperimentado()
-	
-	
-	method tieneActConEstrellas(){
-		return actividades.any({actividad => actividad.tieneEstrellas(self)})
-	}
-	
-	method tieneEquipoExperimentado(){
-		return actividades.any({actividad => actividad.esExperimentado()})
-	}
-	
-	method destacadosYEstrellas(){
-		return self.sociosDestacados().intersection(self.sociosEstrellas())
-	}
-	
 	method sociosEstrellas() = socios.filter({socio => socio.esEstrella(self)})
-	
-	method sociosDestacados() =	socios.filter({socio => socio.esDestacado(self)})
-	
-	method evaluacion() = self.evaluacionBruta() / cantidadSocios 
-	
-	method evaluacionBruta(){
-		return actividades.foreach({actividad => actividad.evaluacion(self)})
-	}
 	
 	method socios(){
 		return actividades.map({actividad => actividad.participantes()}).asSet()
@@ -75,33 +35,75 @@ class Club{
 		actividades.foreach({actividad => actividad.sancionar()})
 	}
 	
+	method sociosDestacados() =	socios.filter({socio => socio.esDestacado(self)})
+	
+	method destacadosYEstrellas(){
+		return self.sociosDestacados().intersection(self.sociosEstrellas())
+	}
+	
+	method tieneEquipoExperimentado(){
+		return actividades.any({actividad => actividad.esExperimentado()})
+	}
+	
+	method esPrestigioso() = self.tieneActConEstrellas() or self.tieneEquipoExperimentado()
+	
+	
+	method tieneActConEstrellas(){
+		return actividades.any({actividad => actividad.tieneEstrellas(self)})
+	}
+	
+	method evaluacion() = self.evaluacionBruta() / cantidadSocios 
+	
+	method evaluacionBruta(){
+		return actividades.foreach({actividad => actividad.evaluacion(self)})
+	}
+	
+	method transferencia(unSocio,unEquipo){
+		if (not unSocio.esDestacado(self)){
+			self.transferir(unSocio,unEquipo)
+			self.darBaja(unSocio)
+		}
+		
+	}
+	
+	method darBaja(unSocio){
+		self.actividadesDeSocio(unSocio).foreach({actividad => actividad.quitarParticipante(unSocio)})
+		socios.remove(unSocio)
+	}
+	
+	method transferir(unSocio,unEquipo){
+		unEquipo.agregarParticipante(unSocio)
+	}
+	
+
+	
 }
 
 class ClubProfesional inherits Club{
 	var paseDeEstrella = 0
 	
+	//retorna true si el pase del socio es mayor a paseDeEstrella
+	override method esEstrella(unSocio){
+		return super(unSocio) or unSocio.valorPase() > paseDeEstrella
+	}
 	
 	override method evaluacionBruta(){
 		return (super() * 2) - (5* gastosMensuales)
 	}
 	
-	//retorna true si el pase del socio es mayor a paseDeEstrella
-	override method esEstrella(unSocio){
-		return super(unSocio) or unSocio.valorPase() > paseDeEstrella
-	}
 }
 
 class ClubTradicional inherits Club{
-	
-	
-	override method evaluacionBruta(){
-		return super() - gastosMensuales
-	}
 	
 	//retorna true si el socio participa en mas de 3 actividades
 	override method esEstrella(unSocio){
 		return super(unSocio) or self.socioActivo(unSocio)
 	}
+	
+	override method evaluacionBruta(){
+		return super() - gastosMensuales
+	}
+	
 }
 
 class ClubComunitario inherits ClubProfesional{
