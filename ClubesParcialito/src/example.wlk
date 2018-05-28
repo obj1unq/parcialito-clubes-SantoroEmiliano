@@ -152,6 +152,10 @@ class Actividad {
 		participantes.add(unSocio)
 	}
 	
+	method sancionar(){
+		estaSancionado  = true
+	}
+	
 	method tieneEstrellas(club){
 		return participantes.any({participante =>club.esEstrella(participante)})
 	}
@@ -170,9 +174,7 @@ class ActividadSocial inherits Actividad {
 				if (self.estaSuspendida()){0} else {valorSocial}
 	}
 	
-	method sancionar(){
-		estaSancionado  = true
-	}
+	
 	
 	method reanudar(){
 		estaSancionado = false
