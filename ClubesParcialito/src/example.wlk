@@ -2,10 +2,9 @@ class Club{
 	var property actividades = #{}
 	var estaSancionado = false
 	var cantidadSocios = self.socios().size()
-	var socios = #{}
 	var gastosMensuales = 0
 	
-	method sociosEstrellas() = socios.filter({socio => socio.esEstrella(self)})
+	method sociosEstrellas() = self.socios().filter({socio => socio.esEstrella(self)})
 	
 	method socios(){
 		return actividades.map({actividad => actividad.participantes()}).asSet()
@@ -35,7 +34,7 @@ class Club{
 		actividades.foreach({actividad => actividad.sancionar()})
 	}
 	
-	method sociosDestacados() =	socios.filter({socio => socio.esDestacado(self)})
+	method sociosDestacados() =	self.socios().filter({socio => socio.esDestacado(self)})
 	
 	method destacadosYEstrellas(){
 		return self.sociosDestacados().intersection(self.sociosEstrellas())
@@ -68,7 +67,6 @@ class Club{
 	
 	method darBaja(unSocio){
 		self.actividadesDeSocio(unSocio).foreach({actividad => actividad.quitarParticipante(unSocio)})
-		socios.remove(unSocio)
 	}
 	
 	method transferir(unSocio,unEquipo){
