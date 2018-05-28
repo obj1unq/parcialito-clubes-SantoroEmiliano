@@ -1,9 +1,37 @@
 class Club{
-	var perfil = unperfil
 	var property actividades = #{}
 	var estaSancionado = false
 	var cantidadSocios = self.socios().size()
 	var socios = #{}
+	var gastosMensuales = 0
+	
+	method transferencia(unSocio,unEquipo){
+		if (not unSocio.esDestacado(self)){
+			self.transferir(unSocio,unEquipo)
+			self.darBaja(unSocio)
+		}
+		
+	}
+	
+	method darBaja(unSocio){
+		self.actividadesDeSocio(unSocio).foreach({actividad => actividad.quitarParticipante(unSocio)})
+		socios.remove(unSocio)
+	}
+	
+	method transferir(unSocio,unEquipo){
+		unEquipo.agregarParticipante(unSocio)
+	}
+	
+	method esPrestigioso() = self.tieneActConEstrellas() or self.tieneEquipoExperimentado()
+	
+	
+	method tieneActConEstrellas(){
+		return actividades.any({actividad => actividad.tieneEstrellas(self)})
+	}
+	
+	method tieneEquipoExperimentado(){
+		return actividades.any({actividad => actividad.esExperimentado()})
+	}
 	
 	method destacadosYEstrellas(){
 		return self.sociosDestacados().intersection(self.sociosEstrellas())
@@ -39,6 +67,7 @@ class Club{
 	method sancionar(){
 		if (cantidadSocios>500){
 			self.sancionarActividades()
+			estaSancionado = true
 		}
 	}
 	
@@ -50,7 +79,7 @@ class Club{
 
 class ClubProfesional inherits Club{
 	var paseDeEstrella = 0
-	var gastosMensuales = 0
+	
 	
 	override method evaluacionBruta(){
 		return (super() * 2) - (5* gastosMensuales)
@@ -63,7 +92,7 @@ class ClubProfesional inherits Club{
 }
 
 class ClubTradicional inherits Club{
-	var gastosMensuales = 0
+	
 	
 	override method evaluacionBruta(){
 		return super() - gastosMensuales
@@ -83,19 +112,6 @@ class ClubComunitario inherits ClubProfesional{
 	}
 }
 
-
-
-class Jugador inherits Socio{
-	var property valorPase = 0
-	var property partidosJugados = 0
-	
-	override method estrellaPorAntiguedad() = partidosJugados > 50
-	
-	override method esDestacado(club){
-		return club.actividades().any({actividad => actividad.capitan()== self})
-	}
-}
-
 class Socio{
 	var property aniosAntiguedad = 0
 	
@@ -104,12 +120,41 @@ class Socio{
 	method esDestacado(club){
 		return	club.actividades().any ({actividad => actividad.organizador() == self})
 	}
+	
 }
+
+class Jugador inherits Socio{
+	var property valorPase = 0
+	var property partidosJugados = 0
+	
+	method esExperimentado() = partidosJugados > 10
+	
+	override method estrellaPorAntiguedad() = partidosJugados > 50
+	
+	override method esDestacado(club){
+		return club.actividades().any({actividad => actividad.capitan()== self})
+	}
+}
+
+
 
 
 class Actividad {
 	var property participantes = #{}
 	var estaSancionado = false
+	method esExperimentado() = false
+	
+	method quitarParticipante(unSocio){
+		participantes.remove(unSocio)
+	}
+	
+	method agregarParticipante(unSocio){
+		participantes.add(unSocio)
+	}
+	
+	method tieneEstrellas(club){
+		return participantes.any({participante =>club.esEstrella(participante)})
+	}
 	
 	method participaUnSocio(unSocio) = participantes.any({socio => participantes == unSocio})
 }
@@ -117,7 +162,8 @@ class Actividad {
 class ActividadSocial inherits Actividad {
 	var property organizador = null
 	var property valorSocial = 0
-		
+	
+	
 	
 	method evaluacion(club) {
 		return
@@ -140,6 +186,8 @@ class Equipo inherits ActividadSocial{
 	var sanciones = 0
 	var campeonatos = 0
 	
+	override method esExperimentado() = participantes.all({participante => participante.esExperimentado()})
+	
 	override method sancionar(){
 		super()
 		sanciones += 1
@@ -147,7 +195,7 @@ class Equipo inherits ActividadSocial{
 	
 	method sanciones() = sanciones
 	
-	method evaluacion(club){
+	override method evaluacion(club){
 		return self.evaluacionGeneral(club) - (sanciones * 20) 
 	}
 	
